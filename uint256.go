@@ -730,6 +730,22 @@ func (z *Int) MulDivOverflow(x, y, d *Int) (*Int, bool) {
 	return z, (quot[4] | quot[5] | quot[6] | quot[7]) != 0
 }
 
+// MulDivOverflow calculates (x*y)/d with full precision, returns z and whether overflow occurred in multiply process (result does not fit to 256-bit).
+// computes 512-bit multiplication and 512 by 256 division.
+func (z *Int) MulDivModOverflow(x, y, d, m *Int) (*Int, *Int, bool) {
+	if x.IsZero() || y.IsZero() || d.IsZero() {
+		return z.Clear(), m.Clear(), false
+	}
+	p := umul(x, y)
+
+	var quot [8]uint64
+	*m = udivrem(quot[:], p[:], d)
+
+	copy(z[:], quot[:4])
+
+	return z, m, (quot[4] | quot[5] | quot[6] | quot[7]) != 0
+}
+
 // Abs interprets x as a two's complement signed number,
 // and sets z to the absolute value
 //
